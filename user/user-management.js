@@ -1,7 +1,12 @@
 const { db } = require('./db');
 
+/**
+ * Insert user into de database
+ * @param username
+ * @param password
+ * @returns {Promise<void>}
+ */
 const insertUser = async (username, password) => {
-
     db.run(`INSERT INTO users (username, password) VALUES (?, ?)`, [username, password], function (err) {
         if (err) {
             reject(err);
@@ -11,19 +16,11 @@ const insertUser = async (username, password) => {
     });
 };
 
-const getUserByName = (username) => {
-    return new Promise((resolve, reject) => {
-        db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
-            if (err) {
-                console.error(err.message);
-                reject(err);
-            } else {
-                resolve(row !== undefined);
-            }
-        });
-    });
-};
-
+/**
+ * Get user data by his username
+ * @param username
+ * @returns {Promise<unknown>}
+ */
 function getUserByUsername(username) {
     return new Promise((resolve, reject) => {
         db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
@@ -38,6 +35,11 @@ function getUserByUsername(username) {
     });
 }
 
+/**
+ * Check if user exist on the database
+ * @param username
+ * @returns {Promise<boolean|*>}
+ */
 const checkIfUserExists = async (username) => {
     try {
         const exists = await getUserByName(username);
@@ -48,6 +50,11 @@ const checkIfUserExists = async (username) => {
     }
 };
 
+/**
+ * Get user by ID of the database table
+ * @param id
+ * @returns {Promise<unknown>}
+ */
 const getUserById = (id) => {
     return new Promise((resolve, reject) => {
         db.get(`SELECT * FROM users WHERE id = ?`, [id], (err, row) => {
@@ -63,7 +70,6 @@ const getUserById = (id) => {
 
 module.exports = {
     insertUser,
-    getUserByName,
     checkIfUserExists,
     getUserById,
     getUserByUsername,
