@@ -37,9 +37,11 @@ passport.use('username-password-login', new LocalStrategy(
         const userDB = await getUserByUsername(username);
 
         if (!userDB) {
+            // user not found on the database
             return done(null, false);
         }
 
+        // verify if the provided password matches the hash stored
         if (await scryptMcf.verify(password, userDB.password)) {
             const user = {
                 username: userDB.username,
@@ -59,12 +61,16 @@ passport.use('username-password-register', new LocalStrategy(
     },
     async function (username, password, done) {
 
+        // check if user exists on the DB
         const userExists = await checkIfUserExists(username);
 
         if (userExists) {
+            // cannot register as user already exist
             return done(null, false)
         } else {
+            // hash user password
             const hashedString = await scryptMcf.hash(password)
+            // insert user into db
             await insertUser(username, hashedString)
 
             const user = {
@@ -87,7 +93,7 @@ app.get('/', verifyToken, (req, res) => {
 })
 
 app.get('/logout', (req, res) => {
-    // agg: Delete user login cookie and redirect to login page
+    // Delete user login cookie and redirect to login page
     res.clearCookie('user_login');
     res.redirect('/login');
 });
