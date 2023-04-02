@@ -1,2 +1,2 @@
 # NSAA-web
-To run server issue ```node node.js```
+To run server execute ```node node.js```
