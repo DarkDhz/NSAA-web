@@ -5,10 +5,14 @@ const LocalStrategy = require('passport-local').Strategy
 const cookieParser = require('cookie-parser');
 const fortune = require('fortune-teller');
 const scryptMcf = require('scrypt-mcf')
+const axios = require("axios");
+
+const dotenv = require('dotenv')
+dotenv.config()
 
 const { insertUser, checkIfUserExists, getUserByUsername } = require('./user/user-management');
 const { generateToken, redirectHome, verifyToken } = require('./user/token-management');
-
+const { doOAuth } = require('./user/oauth');
 
 const app = express()
 const port = 3000
@@ -26,6 +30,9 @@ db.serialize(() => {
   )`);
 });*/
 
+app.get('/oauth2cb', doOAuth, async (req, res) => {
+
+})
 
 passport.use('username-password-login', new LocalStrategy(
     {
@@ -46,7 +53,7 @@ passport.use('username-password-login', new LocalStrategy(
             const user = {
                 username: userDB.username,
             }
-            return done(null, user)
+            return done(null, user);
         } else {
             return done(null, false);
         }
@@ -116,12 +123,6 @@ app.post('/login',
 app.post('/register', passport.authenticate('username-password-register', { failureRedirect: '/register', session: false }), generateToken, (req, res) => {
     // perform register authentication, if successful redirect main page
 })
-
-app.get('*', (req, res) => {
-    // If any random endpoint redirect to login page
-    // in case user is logged with token, will be redirected to main page
-    res.redirect('/login');
-});
 
 app.use(function (err, req, res, next) {
     console.error(err.stack)

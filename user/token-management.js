@@ -59,10 +59,30 @@ const generateToken = (req, res, next) => {
 
     console.log(`Token sent. Debug at https://jwt.io/?value=${token}`)
     console.log(`Token secret (for verifying the signature): ${jwtSecret.toString('base64')}`)
+    next()
+};
+
+const generateTokenOAuth = (username, res) => {
+    const jwtClaims = {
+        sub: username,
+        iss: 'localhost:3000',
+        aud: 'localhost:3000',
+        exp: Math.floor(Date.now() / 1000) + 604800, // 1 week (7×24×60×60=604800s) from now
+        role: 'user'
+    }
+
+    const token = jwt.sign(jwtClaims, jwtSecret)
+
+    res.cookie('user_login', token, { httpOnly: true, secure: true });
+    res.redirect('/');
+
+    console.log(`Token sent. Debug at https://jwt.io/?value=${token}`)
+    console.log(`Token secret (for verifying the signature): ${jwtSecret.toString('base64')}`)
 };
 
 module.exports = {
     generateToken,
     redirectHome,
-    verifyToken
+    verifyToken,
+    generateTokenOAuth
 };
