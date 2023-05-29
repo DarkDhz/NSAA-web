@@ -115,7 +115,7 @@ passport.use( "oidc" , new GoogleStrategy({
     function verify(issuer, profile, cb) {
         const user = {
             id: profile.id,
-            username: profile.displayName, //profile.displayName
+            username: profile.displayName,
             mail: profile.emails[0].value
         }
         return cb(null, user);
