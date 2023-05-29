@@ -124,8 +124,7 @@ passport.use( "oidc" , new GoogleStrategy({
 
 app.get('/oidc/login', passport.authenticate('oidc', {scope: 'openid email profile'}))
 
-app.get('/oidc/cb', passport.authenticate('oidc', { failureRedirect: '/login', failureMessage: true }), generateToken, redirectHome, (req, res) => {
-})
+app.get('/oidc/cb', passport.authenticate('oidc', { failureRedirect: '/login', failureMessage: true }), generateToken, redirectHome, (req, res) => {})
 
 app.get('/', verifyToken, (req, res) => {
     // If token verified (verifyToken) send a random adage
@@ -149,14 +148,11 @@ app.get('/register', verifyToken, redirectHome, (req, res) => {
     res.sendFile('render/register/register.html', { root: __dirname })
 })
 
-app.post('/login',
-    passport.authenticate('username-password-login', { failureRedirect: '/login', session: false }), generateToken, (req, res) => {
-    // perform login authentication, if successful redirect to main page
-})
+// perform login authentication, if successful redirect to main page
+app.post('/login', passport.authenticate('username-password-login', { failureRedirect: '/login', session: false }), generateToken, (req, res) => {})
 
-app.post('/register', passport.authenticate('username-password-register', { failureRedirect: '/register', session: false }), generateToken, (req, res) => {
-    // perform register authentication, if successful redirect main page
-})
+// perform register authentication, if successful redirect main page
+app.post('/register', passport.authenticate('username-password-register', { failureRedirect: '/register', session: false }), generateToken, (req, res) => {})
 
 app.use(function (err, req, res, next) {
     console.error(err.stack)
