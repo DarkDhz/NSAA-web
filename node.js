@@ -5,7 +5,8 @@ const LocalStrategy = require('passport-local').Strategy
 const cookieParser = require('cookie-parser');
 const fortune = require('fortune-teller');
 const scryptMcf = require('scrypt-mcf')
-const axios = require("axios");
+const session = require('express-session')
+const GoogleStrategy = require('passport-google-oidc').Strategy;
 
 const dotenv = require('dotenv')
 dotenv.config()
@@ -19,6 +20,11 @@ const port = 3000
 
 app.use(logger('dev'))
 app.use(cookieParser());
+app.use(session({
+    secret: require('crypto').randomBytes(32).toString('base64url'), // This is the secret used to sign the session cookie. We are creating a random base64url string with 256 bits of entropy.
+    resave: false, // Default value is true (although it is going to be false in the next major release). We do not need the session to be saved back to the session store when the session has not been modified during the request.
+    saveUninitialized: false // Default value is true (although it is going to be false in the next major release). We do not need sessions that are "uninitialized" to be saved to the store
+}))
 
 /*const { db } = require('./user/db');
 
@@ -30,9 +36,7 @@ db.serialize(() => {
   )`);
 });*/
 
-app.get('/oauth2cb', doOAuth, async (req, res) => {
-
-})
+app.get('/oauth2cb', doOAuth, async (req, res) => {})
 
 passport.use('username-password-login', new LocalStrategy(
     {
@@ -92,6 +96,36 @@ passport.use('username-password-register', new LocalStrategy(
 
 app.use(express.urlencoded({ extended: true }))
 app.use(passport.initialize())
+
+// We will store in the session the complete passport user object
+passport.serializeUser(function (user, done) {
+    return done(null, user)
+})
+
+// The returned passport user is just the user object that is stored in the session
+passport.deserializeUser(function (user, done) {
+    return done(null, user)
+})
+
+passport.use( "oidc" , new GoogleStrategy({
+        clientID: process.env.OIDC_CLIENT_ID,
+        clientSecret: process.env.OIDC_CLIENT_SECRET,
+        callbackURL: process.env.OIDC_CALLBACK_URL,
+    },
+    function verify(issuer, profile, cb) {
+        const user = {
+            id: profile.id,
+            username: profile.displayName, //profile.displayName
+            mail: profile.emails[0].value
+        }
+        return cb(null, user);
+    }
+));
+
+app.get('/oidc/login', passport.authenticate('oidc', {scope: 'openid email profile'}))
+
+app.get('/oidc/cb', passport.authenticate('oidc', { failureRedirect: '/login', failureMessage: true }), generateToken, redirectHome, (req, res) => {
+})
 
 app.get('/', verifyToken, (req, res) => {
     // If token verified (verifyToken) send a random adage
