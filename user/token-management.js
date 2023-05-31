@@ -44,8 +44,18 @@ const redirectHome = (req, res, next) => {
  * @param next
  */
 const generateToken = (req, res, next) => {
+    if (!req.user.mail) {
+        req.user.mail = "not set"
+    }
+
+    if (!req.user.family) {
+        req.user.family = "not set"
+    }
+
     const jwtClaims = {
         sub: req.user.username,
+        email: req.user.mail,
+        family_name: req.user.family,
         iss: 'localhost:3000',
         aud: 'localhost:3000',
         exp: Math.floor(Date.now() / 1000) + 604800, // 1 week (7×24×60×60=604800s) from now
@@ -59,7 +69,7 @@ const generateToken = (req, res, next) => {
 
     console.log(`Token sent. Debug at https://jwt.io/?value=${token}`)
     console.log(`Token secret (for verifying the signature): ${jwtSecret.toString('base64')}`)
-    next()
+    //next()
 };
 
 const generateTokenOAuth = (username, res) => {

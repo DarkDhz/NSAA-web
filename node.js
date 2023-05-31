@@ -113,10 +113,17 @@ passport.use( "oidc" , new GoogleStrategy({
         callbackURL: process.env.OIDC_CALLBACK_URL,
     },
     function verify(issuer, profile, cb) {
+        console.log(profile)
+        let familyName = 'not set on google account';
+
+        if (profile.name && profile.name.familyName) {
+            familyName = profile.name.familyName;
+        }
         const user = {
             id: profile.id,
             username: profile.displayName,
-            mail: profile.emails[0].value
+            mail: profile.emails[0].value,
+            family: familyName,
         }
         return cb(null, user);
     }
@@ -124,12 +131,16 @@ passport.use( "oidc" , new GoogleStrategy({
 
 app.get('/oidc/login', passport.authenticate('oidc', {scope: 'openid email profile'}))
 
-app.get('/oidc/cb', passport.authenticate('oidc', { failureRedirect: '/login', failureMessage: true }), generateToken, redirectHome, (req, res) => {})
+app.get('/oidc/cb', passport.authenticate('oidc', { failureRedirect: '/login', failureMessage: true }),
+    generateToken, redirectHome, (req, res) => {})
 
 app.get('/', verifyToken, (req, res) => {
     // If token verified (verifyToken) send a random adage
     const adage = fortune.fortune();
-    res.send(adage);
+    toSend = "SUB: " + req.user.sub + "\n\nEMAIL: " + req.user.email + "\n\nFAMILY: " + req.user.family_name +
+        "\n\nADAGE: " + adage;
+
+    res.send(toSend);
 })
 
 app.get('/logout', (req, res) => {
